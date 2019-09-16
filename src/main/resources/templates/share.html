@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" xmlns:th="http://www.thymeleaf.org" lang="zh-Hans"> <!--<![endif]-->
+<head>
+    <title>文件共享</title>
+    <meta charset="UTF-8"> <!-- for HTML5 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" th:href="@{/file/assets/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/file/assets/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/file/js/jquery.min.js}"></script>
+    <style>
+        progress {
+            background-color: #56BE64;
+        }
+        progress::-webkit-progress-bar {
+            background: #ccc;
+        }
+        progress::-webkit-progress-value {
+            background: #56BE64;
+        }
+    </style>
+</head>
+
+<body>
+<h1 align="center" >文件共享目录</h1>
+<div class="container" style="width: 600px;height: 600px;">
+
+    <table class="table table-hover">
+        <tr>
+            <th>文件名&nbsp;&nbsp;</th>
+            <th>文件类型&nbsp;</th>
+            <th>下载&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>删除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+
+        <!--<tr align="center" >-->
+        <!--<td colspan="4">-->
+        <!--<button onclick="">共享文件目录</button>-->
+        <!--</td>-->
+        <!--</tr>-->
+        <tr align="center" >
+            <td colspan="4">
+                <button onclick="window.location.href='/'">主目录</button>
+            </td>
+        </tr>
+        <tr align="center" >
+            <td colspan="4">
+                <label for="addPath">要添加到文件共享目录的文件的绝对路径URL：</label>
+                <input type="text" id="addPath" name="addPath">
+                <br>
+                <button onclick="add_file_by_path()">通过所输入的路径添加文件</button>
+            </td>
+        </tr>
+        <script>
+            function add_file_by_path() {
+                var addPath = document.getElementById("addPath");
+                var tem_url = addPath.value;
+                var url = tem_url.replace(/\\/g, "/");
+                // window.location.href="/download/file?destination=" + url;
+                $.ajax({
+                    url: '/share' ,
+                    type: 'POST',
+                    data: {
+                        "destination":url
+                    },
+                    success: function (return_data) {
+                        alert(return_data.back_message);
+                        window.location.reload();
+                    },
+                    error: function (return_data) {
+                        alert(return_data);
+                    }
+                });
+            }
+        </script>
+
+        <tr align="center" >
+            <td colspan="4">
+                <label for="downloadPath">要下载的文件的绝对路径URL：</label>
+                <input type="text" id="downloadPath" name="downloadPath">
+                <br>
+                <button onclick="download_file_by_path()">通过所输入的路径下载文件</button>
+            </td>
+        </tr>
+        <script>
+            function download_file_by_path() {
+                var downloadPath = document.getElementById("downloadPath");
+                var tem_url = downloadPath.value;
+                var url = tem_url.replace(/\\/g, "/");
+                window.location.href="/download/file?destination=" + encodeURI(url);
+            }
+        </script>
+
+
+
+        <tr th:each="file:${fileList}">
+            <td>
+                <span th:if="${file.directory eq true}">
+                    <span>文件夹名：</span><br>
+                    <button th:utext="${file.getName()}"
+                            onclick="getDir(this)" th:value="${file.absolutelyUrl}"></button>
+                </span>
+                <span th:if="${file.directory eq false}">
+                    <span>文件名：</span><br>
+                    <button th:utext="${file.getName()}" ></button>
+                </span>
+
+            </td>
+            <td>
+                <span th:if="${file.directory eq true}">文件夹</span>
+                <span th:if="${file.directory eq false}">文件</span>
+            </td>
+            <td >
+                <span th:if="${file.directory eq true}"><span>无法直接下载</span></span>
+                <span th:if="${file.directory eq false}">
+                    <button onclick="download_file(this)" th:value="${file.absolutelyUrl}">下载文件</button>
+                </span>
+            </td>
+            <td >
+                <span >
+                    从文件分享目录中
+                    <button onclick="delete_file(this)" th:value="${file.absolutelyUrl}">删除</button>
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+<script>
+
+    function getDir(in_button) {
+        var des_url = in_button.value;
+
+        if (des_url ==="#"){
+            return null;
+        }else if (des_url === "$"){
+            window.location.href='/'
+        }else {
+            var url = des_url.replace(/\\/g, "/");
+            window.location.href="/dir/get?destination=" + encodeURI(url) + "/";
+        }
+
+    }
+
+    function download_file(down_button) {
+        var des_url = down_button.value;
+        var url = des_url.replace(/\\/g, "/");
+        window.location.href="/download/file?destination=" + encodeURI(url);
+    }
+
+    function delete_file(delete_button) {
+        var des_url = delete_button.value;
+        var url = des_url.replace(/\\/g, "/");
+
+        if (confirm("您确定要从文件共享目录中删除该文件？\n文件路径：" + url)){
+            $.ajax({
+                url: '/share' ,
+                type: 'DELETE',
+                data: {
+                    "destination":url
+                },
+                success: function (return_data) {
+
+                    alert(return_data.back_message);
+                    window.location.reload();
+                },
+                error: function (return_data) {
+                    alert(return_data);
+                }
+            });
+        }
+    }
+
+</script>
+</html>

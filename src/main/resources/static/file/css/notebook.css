@@ -1,0 +1,23 @@
+.video{
+    width: 100%;
+}
+
+.forum{
+    width: 100%;
+}
+
+.video, .forum{
+    height: 550px;
+    margin: 0px 0px;
+    position: relative;
+    left: -14px;
+}
+
+.row-btn{
+    margin-top: 10px;
+}
+
+body{
+    background-image: url(image/videobackground.jpg);
+    background-repeat:repeat-x;
+}

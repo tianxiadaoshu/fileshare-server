@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" xmlns:th="http://www.thymeleaf.org" lang="zh-Hans"> <!--<![endif]-->
+<head>
+    <title>文件共享</title>
+    <meta charset="UTF-8"> <!-- for HTML5 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" th:href="@{/file/assets/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/file/assets/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/file/js/jquery.min.js}"></script>
+    <style>
+        progress {
+            background-color: #56BE64;
+        }
+        progress::-webkit-progress-bar {
+            background: #ccc;
+        }
+        progress::-webkit-progress-value {
+            background: #56BE64;
+        }
+    </style>
+</head>
+
+<body>
+<h1 align="center" th:text="${'当前路径：' + cur_url}"></h1>
+<div class="container" style="width: 600px;height: 600px;">
+
+    <table class="table table-hover">
+        <tr>
+            <th>文件名&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>文件类型&nbsp;&nbsp;&nbsp;</th>
+            <th>下载&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>删除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>添加到共享目录&nbsp;&nbsp;</th>
+        </tr>
+
+        <tr align="center" >
+            <td colspan="5">
+                <button onclick="window.location.href='/share'">共享文件目录</button>
+            </td>
+        </tr>
+        <tr align="center" th:if="${parent_url ne '#'}">
+            <td colspan="5">
+                <button onclick="getDir(this)" th:value="${parent_url}">上级目录</button>
+            </td>
+        </tr>
+
+        <tr align="center" th:if="${parent_url ne '#'}">
+            <td colspan="5">
+                <button onclick="createDir(this)" th:value="${cur_url}">当前目录下新建文件夹</button>
+
+            </td>
+        </tr>
+
+        <tr align="center" >
+            <td colspan="5">
+                <label for="downloadPath">要下载的文件的绝对路径URL：</label>
+                <input type="text" id="downloadPath" name="downloadPath">
+                <br>
+                <button onclick="download_file_by_path()">通过所输入的路径下载文件</button>
+            </td>
+        </tr>
+        <script>
+            function download_file_by_path() {
+                var downloadPath = document.getElementById("downloadPath");
+                var tem_url = downloadPath.value;
+                var url = tem_url.replace(/\\/g, "/");
+                // window.location.href="/download/file?destination=" + encodeURI(url);
+                window.open("/download/file?destination=" + encodeURI(url));
+            }
+        </script>
+
+        <tr align="center" th:if="${parent_url ne '#'}">
+            <td colspan="5">
+
+                <form id= "uploadForm">
+                    <label for="curUrl" hidden>文件存储路径</label>
+                    <input type="text" id="curUrl" name="curUrl" th:value="${cur_url}" hidden/>
+                    <label for="file">上传文件 <input type="file" name="file" id="file" multiple="multiple"/></label>
+                    <input type="button" value="上传" onclick="doUpload()" />
+                </form>
+                <!--进度条部分(默认隐藏)-->
+                <div style="display: none;" class="progress-body">
+                    <div style="margin-bottom: 10px;"><span style="width: 100px; display: inline-block; text-align: right">上传进度：</span><progress></progress></div>
+                    <div style="margin-bottom: 10px; margin-left: 30px; width: 200px;" class="progress-speed">0 bytes</div>
+                    <div style="margin-bottom: 10px; margin-left: 30px; width: 200px;" class="progress-info">资料正准备上传</div>
+                </div>
+            </td>
+        </tr>
+
+        <script>
+            function doUpload() {
+                var formData = new FormData($( "#uploadForm" )[0]);
+                $.ajax({
+                    url: '/file' ,
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    xhr: function () {
+                        var xhr = $.ajaxSettings.xhr();
+                        if (xhr.upload) {
+                            //处理进度条的事件
+                            xhr.upload.addEventListener("progress", progressHandle, false);
+                            //加载完成的事件
+                            xhr.addEventListener("load", completeHandle, false);
+                            //加载出错的事件
+                            xhr.addEventListener("error", failedHandle, false);
+                            //加载取消的事件
+                            xhr.addEventListener("abort", canceledHandle, false);
+                            //开始显示进度条
+                            showProgress();
+                            return xhr;
+                        }
+                    },
+                    success: function (return_data) {
+                        alert(return_data.back_message);
+                        window.location.reload();
+                    },
+                    error: function (return_data) {
+                        alert(return_data);
+                    }
+                });
+                /******核心AJAX部分结束******/
+                //显示进度条的函数
+                function showProgress() {
+                    $(".progress-body").css("display", "block");
+                }
+                //隐藏进度条的函数
+                function hideProgress() {
+                    $('.progress-body>.progress-speed', window.parent.document).html("0 bytes");
+                    $('.progress-body>.progress-info', window.parent.document).html("资料正准备上传");
+                    $(".progress-body", window.parent.document).css("display", "none");
+                }
+                //进度条更新
+                function progressHandle(e) {
+                    $('.progress-body progress').attr({value: e.loaded, max: e.total});
+                    var percent = e.loaded / e.total * 100;
+                    $('.progress-body>.progress-speed').html(((e.loaded / 1024) / 1024).toFixed(2) + "/" + ((e.total / 1024) / 1024).toFixed(2) + " MB. " + percent.toFixed(2) + "%");
+                    if (percent === 100) {
+                        $('.progress-body>.progress-info').html("上传完成,后台正在处理...");
+                    } else {
+                        $('.progress-body>.progress-info').html("资料上传ing...");
+                    }
+                }
+                //上传完成处理函数
+                function completeHandle(e) {
+                    $('.progress-body>.progress-info').html("上传资料完成");
+                    setTimeout(hideProgress, 2000);
+                }
+                //上传出错处理函数
+                function failedHandle(e) {
+                    $('.progress-body>.progress-info', window.parent.document).html("上传资源出错");
+                }
+                //上传取消处理函数
+                function canceledHandle(e) {
+                    $('.progress-body>.progress-info', window.parent.document).html("上传资源取消");
+                }
+            }
+        </script>
+
+        <tr th:each="file:${fileList}">
+            <td>
+                <span th:if="${file.directory eq true}">
+                    <span>文件夹名：</span><br>
+                    <button th:utext="${file.getName()}"
+                            onclick="getDir(this)" th:value="${file.absolutelyUrl}"></button>
+                </span>
+                <span th:if="${file.directory eq false}">
+                    <span>文件名：</span><br>
+                    <button th:utext="${file.getName()}" ></button>
+                </span>
+
+            </td>
+            <td>
+                <span th:if="${file.directory eq true}">文件夹</span>
+                <span th:if="${file.directory eq false}">文件</span>
+            </td>
+            <td >
+                <span th:if="${file.directory eq true}"><span>无法直接下载</span></span>
+                <span th:if="${file.directory eq false}">
+                    <button onclick="download_file(this)" th:value="${file.absolutelyUrl}">下载文件</button>
+                </span>
+            </td>
+            <td >
+                <span th:if="${file.directory eq true}">
+                    <button onclick="delete_file(this)" th:value="${file.absolutelyUrl}">删除文件夹</button>
+                </span>
+                <span th:if="${file.directory eq false}">
+                    <button onclick="delete_file(this)" th:value="${file.absolutelyUrl}">删除文件</button>
+                </span>
+            </td>
+            <td >
+
+                <span>
+                    <button onclick="add_file_by_path(this)" th:value="${file.absolutelyUrl}">添加</button>
+                    到文件共享目录
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+<script>
+
+    function getDir(in_button) {
+        var des_url = in_button.value;
+
+        if (des_url ==="#"){
+            return null;
+        }else if (des_url === "$"){
+            window.location.href='/'
+        }else {
+            var url = des_url.replace(/\\/g, "/");
+            window.location.href="/dir/get?destination=" + encodeURI(url) + "/";
+        }
+
+    }
+
+    function download_file(down_button) {
+        var des_url = down_button.value;
+        var url = des_url.replace(/\\/g, "/");
+        // window.location.href="/download/file?destination=" + encodeURI(url);
+        window.open("/download/file?destination=" + encodeURI(url));
+    }
+
+    function delete_file(delete_button) {
+        var des_url = delete_button.value;
+        var url = des_url.replace(/\\/g, "/");
+
+        if (confirm("您确定要删除该文件？\n该文件位于：" + url)){
+            $.ajax({
+                url: '/file' ,
+                type: 'DELETE',
+                data: {
+                    "fileUrl":url
+                },
+                success: function (return_data) {
+
+                    alert(return_data.back_message);
+                    window.location.reload();
+                },
+                error: function (return_data) {
+                    alert(return_data);
+                }
+            });
+        }
+    }
+
+    function createDir(create_button) {
+        var des_url = create_button.value;
+        var url = des_url.replace(/\\/g, "/");
+        var dirName = prompt("请输入新的文件夹名，该文件位于：" + url);
+        $.ajax({
+            url: '/dir' ,
+            type: 'POST',
+            data: {
+                "desUrl":url,
+                "dirName":dirName
+            },
+            success: function (return_data) {
+
+                alert(return_data.back_message);
+                window.location.reload();
+            },
+            error: function (return_data) {
+                alert(return_data);
+            }
+        });
+    }
+
+    function add_file_by_path(add_button) {
+        var addPath = add_button.value;
+        var url = addPath.replace(/\\/g, "/");
+        // window.location.href="/download/file?destination=" + url;
+        $.ajax({
+            url: '/share' ,
+            type: 'POST',
+            data: {
+                "destination":url
+            },
+            success: function (return_data) {
+                alert(return_data.back_message);
+                window.location.reload();
+            },
+            error: function (return_data) {
+                alert(return_data);
+            }
+        });
+    }
+</script>
+</html>
