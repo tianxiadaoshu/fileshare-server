@@ -158,40 +158,6 @@ public class FileController {
                 .body(new FileSystemResource(file));
     }
 
-//    @GetMapping("/download/file")
-//    public void downloadFile(String destination, HttpServletResponse response) throws UnsupportedEncodingException {
-//        File file = new File(destination);
-//        if (file.exists()){
-//            String fileName = file.getName();
-//            String contentType = fileService.getContentType(destination);
-//            fileName = new String(fileName.getBytes(), StandardCharsets.ISO_8859_1);
-//            //1.设置文件ContentType类型，这样设置，会自动判断下载文件类型
-//            response.setContentType(contentType);
-//            //2.设置文件头：最后一个参数是设置下载文件名(假如我们叫a.pdf)
-//            response.setHeader("Content-Disposition", "attachment;fileName=" + fileName);
-//            ServletOutputStream out;
-//
-//            try {
-//                FileInputStream inputStream = new FileInputStream(file);
-//                //3.通过response获取ServletOutputStream对象(out)
-//                out = response.getOutputStream();
-//                int b = 0;
-//                byte[] buffer = new byte[512];
-//                while (b != -1){
-//                    b = inputStream.read(buffer);
-//                    //4.写到输出流(out)中
-//                    out.write(buffer,0,b);
-//                }
-//                inputStream.close();
-//                out.close();
-//                out.flush();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
-
-
     @PostMapping("/file")
     @ResponseBody
     public HashMap<String, String> singleFileUpload(@RequestParam("file") MultipartFile[] files,

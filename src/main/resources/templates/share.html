@@ -116,6 +116,7 @@
                 <span th:if="${file.directory eq true}"><span>无法直接下载</span></span>
                 <span th:if="${file.directory eq false}">
                     <button onclick="download_file(this)" th:value="${file.absolutelyUrl}">下载文件</button>
+                    <button onclick="get_download_url(this)" th:value="${file.absolutelyUrl}" th:title="${file.absolutelyUrl}">获取链接</button>
                 </span>
             </td>
             <td >
@@ -148,6 +149,30 @@
         var des_url = down_button.value;
         var url = des_url.replace(/\\/g, "/");
         window.location.href="/download/file?destination=" + encodeURI(url);
+    }
+
+    // 复制的方法
+    function copyText(text, callback){ // text: 要复制的内容， callback: 回调
+        var tag = document.createElement('input');
+        tag.setAttribute('id', 'cp_hgz_input');
+        tag.value = text;
+        document.getElementsByTagName('body')[0].appendChild(tag);
+        document.getElementById('cp_hgz_input').select();
+        document.execCommand('copy');
+        document.getElementById('cp_hgz_input').remove();
+        if(callback) {callback(text)}
+    }
+
+
+    function get_download_url(get_button) {
+        var des_url = get_button.value;
+        var url = des_url.replace(/\\/g, "/");
+        // window.location.href="/download/file?destination=" + encodeURI(url);
+        get_button.title = window.location.protocol + "//" + window.location.host + "/download/file?destination=" + encodeURI(url);
+
+        copyText( get_button.title , function (){alert('复制成功 \n下载链接为：\n' + get_button.title)});
+        // alert("下载链接为：\n" + get_button.title + "\n已复制到剪切板")
+        // window.open("/download/file?destination=" + encodeURI(url));
     }
 
     function delete_file(delete_button) {
