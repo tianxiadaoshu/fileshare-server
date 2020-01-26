@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="identifier">
-  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.14">
+  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.17">
     <root id="1">
       <ServerVersion>3.25.1</ServerVersion>
     </root>
     <schema id="2" parent="1" name="main">
       <Current>1</Current>
-      <Visible>1</Visible>
     </schema>
     <collation id="3" parent="1" name="BINARY"/>
     <collation id="4" parent="1" name="NOCASE"/>
@@ -33,7 +32,6 @@
     <index id="11" parent="6" name="sqlite_autoindex_file_information_1">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>absolutely_url</ColNames>
-      <ColumnCollations></ColumnCollations>
       <Unique>1</Unique>
     </index>
     <key id="12" parent="6">

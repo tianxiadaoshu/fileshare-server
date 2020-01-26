@@ -4,25 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import licx.fileshare.Domain.FileInformation;
-import licx.fileshare.Persistence.FileInformationDao;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class FileService {
 
-    @Autowired
-    private FileInformationDao fileInformationDao;
 
 //    private static String userHomePath = System.getProperty("user.home");
     private static String fileShareListPath = System.getProperty("user.home") + "/fileshare/filesharelist.txt";
@@ -123,7 +117,6 @@ public class FileService {
             return true;
         else
             sharedFiles.add(desFile);
-        fileInformationDao.save(fileToFileInformation(desFile));
         try {
             File f = new File(fileShareListPath);
             OutputStreamWriter write = new OutputStreamWriter(new FileOutputStream(f, true), StandardCharsets.UTF_8);
@@ -266,7 +259,7 @@ public class FileService {
             e.printStackTrace();
         }
         if (contentType == null)
-            contentType = new MimetypesFileTypeMap().getContentType(new File(pathToFile));
+            contentType = "application/octet-stream";
         return contentType;
     }
 

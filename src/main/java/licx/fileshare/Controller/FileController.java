@@ -103,6 +103,16 @@ public class FileController {
         return "share";
     }
 
+    @GetMapping("/ajax/share")
+    @ResponseBody
+    public Map<String, Object> getFileSharingDirRestful() {
+        Map<String, Object> result = new HashMap<>();
+        List<FileInformation> fileInformationList = fileService.getFileShareList();
+
+        result.put("fileList", fileInformationList);
+        return result;
+    }
+
     @PostMapping("/share")
     @ResponseBody
     public Map<String, String> addShareFile(String destination) {

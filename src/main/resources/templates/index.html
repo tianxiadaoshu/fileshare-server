@@ -68,7 +68,7 @@
                 var tem_url = downloadPath.value;
                 var url = tem_url.replace(/\\/g, "/");
                 // window.location.href="/download/file?destination=" + encodeURI(url);
-                window.open("/download/file?destination=" + encodeURI(url));
+                window.open("/download/file?destination=" + encodeURIComponent(url));
             }
         </script>
 
@@ -216,7 +216,7 @@
             window.location.href='/'
         }else {
             var url = des_url.replace(/\\/g, "/");
-            window.location.href="/dir/get?destination=" + encodeURI(url) + "/";
+            window.location.href="/dir/get?destination=" + encodeURIComponent(url) + "/";
         }
 
     }
@@ -226,7 +226,7 @@
         var url = des_url.replace(/\\/g, "/");
         // window.location.href="/download/file?destination=" + encodeURI(url);
 
-        window.open("/download/file?destination=" + encodeURI(url));
+        window.open("/download/file?destination=" + encodeURIComponent(url));
     }
     // 复制的方法
     function copyText(text, callback){ // text: 要复制的内容， callback: 回调
@@ -246,7 +246,7 @@
         var des_url = get_button.value;
         var url = des_url.replace(/\\/g, "/");
         // window.location.href="/download/file?destination=" + encodeURI(url);
-        get_button.title = window.location.protocol + "//" + window.location.host + "/download/file?destination=" + encodeURI(url);
+        get_button.title = window.location.protocol + "//" + window.location.host + "/download/file?destination=" + encodeURIComponent(url);
 
         copyText( get_button.title , function (){alert('复制成功 \n下载链接为：\n' + get_button.title)});
         // alert("下载链接为：\n" + get_button.title + "\n已复制到剪切板")

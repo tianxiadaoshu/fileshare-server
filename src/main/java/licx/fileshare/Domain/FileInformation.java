@@ -1,17 +1,8 @@
 package licx.fileshare.Domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.validation.constraints.NotNull;
-
-@Entity
 public class FileInformation {
-    @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
     private boolean directory;
-    @Id
     private String absolutelyUrl;
 
     public FileInformation() {
