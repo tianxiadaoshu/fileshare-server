@@ -41,6 +41,11 @@
                 <button onclick="window.location.href='/share'">共享文件目录</button>
             </td>
         </tr>
+        <tr align="center" >
+            <td colspan="5">
+                <button onclick="window.location.href='/textshare'">文本共享目录</button>
+            </td>
+        </tr>
         <tr align="center" th:if="${parent_url ne '#'}">
             <td colspan="5">
                 <button onclick="getDir(this)" th:value="${parent_url}">上级目录</button>

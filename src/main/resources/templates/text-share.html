@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang="zh-cmn-Hans"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" xmlns:th="http://www.thymeleaf.org" lang="zh-Hans"> <!--<![endif]-->
+<head>
+    <title>文字共享</title>
+    <meta charset="UTF-8"> <!-- for HTML5 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" th:href="@{/file/assets/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/file/assets/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/file/js/jquery.min.js}"></script>
+    <style type="text/css">
+        /*设置了高度，可以上下滚动*/
+        /*body {*/
+        /*    height: 1800px;*/
+        /*    background:#dddddd;*/
+        /*}*/
+        .center_{
+            background: floralwhite;
+            color:black;
+            overflow: hidden;
+            z-index: 9999;
+            position: fixed;
+            padding:5px;
+            text-align:center;
+            width: 50%;
+            height: 80%;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            right: 25%;
+            top: 10%;
+            display: none;
+        }
+        .text-title{
+            height: 10%;
+            bottom: 12%;
+        }
+        .text-display{
+            top: 15%;
+            height: 82%;
+            bottom: 97%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<h1 align="center" >文本共享目录</h1>
+<div class="container" style="width: 600px;height: 600px;">
+
+    <table class="table table-hover">
+        <tr>
+            <th>文本ID&nbsp;&nbsp;</th>
+            <th style="width: 100px;">文本预览&nbsp;</th>
+            <th>加入时间&nbsp;</th>
+            <th>复制&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>删除&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+
+        <tr align="center" >
+            <td colspan="5">
+                <button onclick="window.location.href='/'">主目录</button>
+            </td>
+        </tr>
+        <tr align="center" >
+            <td colspan="5">
+                <button onclick="display_add_div()">增加共享文本</button>
+            </td>
+        </tr>
+
+
+        <tr th:each="text:${textList}">
+            <td>
+                <span >
+                    <span>文本ID：</span><br>
+                    <button th:utext="${text.id}"
+                            onclick="getCompleteText(this)" th:title="${text.shareText}" th:value="${text.id}"></button>
+                </span>
+
+            </td>
+            <td>
+                <span th:utext="${text.textPreview}"></span>
+            </td>
+            <td>
+                <span th:utext="${text.timestamp}"></span>
+            </td>
+            <td >
+                <span>
+                    <button onclick="getCompleteText(this)" th:value="${text.id}" th:title="${text.shareText}">
+                        查看完整文本
+                    </button>
+                </span>
+                <span >
+                    <button onclick="setTextToClipboard(this)" th:value="${text.id}" th:title="${text.shareText}">复制到剪切板</button>
+                </span>
+            </td>
+            <td >
+                <span >
+                    从文本分享目录中
+                    <button onclick="delete_text(this)" th:value="${text.id}" th:title="${text.shareText}">删除</button>
+                </span>
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="center_" id="update-div">
+    <div class="text-title">
+        <span>文本id：<span id="id"></span></span>
+        <span>加入时间：<span id="timestamp"></span></span>
+    </div>
+    <div class="text-display">
+        <label style="width: 100%;height: 100%">
+            <textarea wrap="virtual" style="width: 100%;height: 100%" id="shareText"></textarea>
+        </label>
+    </div>
+    <div>
+        <button onclick="update_text()">更新</button>
+        <button onclick="close_center(1)">关闭</button>
+    </div>
+</div>
+<div class="center_" id="add-div">
+    <div style="bottom: 95%;width: 100%;height: 95%">
+        <label style="width: 100%;height: 100%">
+            <textarea wrap="virtual" style="width: 100%;height: 100%" id="addText"></textarea>
+        </label>
+    </div>
+    <div>
+        <button onclick="add_text()">增加</button>
+        <button onclick="close_center(2)">关闭</button>
+    </div>
+</div>
+<script>
+    function display_add_div() {
+        document.getElementById('add-div').style.display='block';
+    }
+
+    function add_text(){
+        $.ajax({
+            url: '/textshare/text' ,
+            type: 'POST',
+            data: {
+                "shareText":document.getElementById('addText').value
+            },
+            success: function (return_data) {
+                console.log(return_data);
+                document.getElementById('add-div').style.display='none';
+                display_on_update_div(return_data);
+                window.location.reload();
+            },
+            error: function (return_data) {
+                alert(return_data);
+            }
+        });
+
+    }
+    function getCompleteText(click_button) {
+        let id = click_button.value;
+        $.ajax({
+            url: '/textshare/text' ,
+            type: 'GET',
+            data: {
+                "id":id
+            },
+            success: function (return_data) {
+                console.log(return_data);
+                if (return_data.id === -1){
+                    alert('文本不存在！');
+                }else {
+                    display_on_update_div(return_data);
+
+                }
+            },
+            error: function (return_data) {
+                alert(return_data);
+            }
+        });
+
+
+    }
+
+    function display_on_update_div(data) {
+        document.getElementById('id').innerText = data["id"];
+        document.getElementById('timestamp').innerText = data['timestamp'];
+        document.getElementById('shareText').value = data['shareText'];
+        document.getElementById('update-div').style.display='block';
+    }
+
+    function update_text(){
+        $.ajax({
+            url: '/textshare/text' ,
+            type: 'PUT',
+            data: {
+                "id":document.getElementById('id').innerText,
+                "shareText":document.getElementById('shareText').value
+            },
+            success: function (return_data) {
+                console.log(return_data);
+                alert(return_data);
+                document.getElementById('update-div').style.display='none';
+                window.location.reload();
+            },
+            error: function (return_data) {
+                alert(return_data);
+            }
+        });
+
+    }
+    function close_center(num){
+        if (num === 1){ document.getElementById('update-div').style.display='none';}
+        if (num === 2){ document.getElementById('add-div').style.display='none';}
+    }
+
+    // 复制的方法
+    function copyText(text, callback){ // text: 要复制的内容， callback: 回调
+        var tag = document.createElement('input');
+        tag.setAttribute('id', 'cp_hgz_input');
+        tag.value = text;
+        document.getElementsByTagName('body')[0].appendChild(tag);
+        document.getElementById('cp_hgz_input').select();
+        document.execCommand('copy');
+        document.getElementById('cp_hgz_input').remove();
+        if(callback) {callback(text)}
+    }
+
+
+    function setTextToClipboard(get_button) {
+
+        copyText(get_button.title , function (){alert('复制成功 \n文本内容为：\n' + get_button.title)});
+        // alert("下载链接为：\n" + get_button.title + "\n已复制到剪切板")
+        // window.open("/download/file?destination=" + encodeURI(url));
+    }
+
+    function delete_text(delete_button) {
+        let id = delete_button.value;
+        let text = delete_button.title;
+        if (confirm("您确定要从文本共享中删除该文本？\n文件id：" + id)){
+            $.ajax({
+                url: '/textshare/text' ,
+                type: 'DELETE',
+                data: {
+                    "id":id
+                },
+                success: function (return_data) {
+                    if (return_data.back_message === 'true'){
+                        alert('删除文本成功！文本ID为：' + id + '\n文本内容为：\n' + text);
+                    }else {
+                        alert('删除文本失败！');
+                    }
+                    window.location.reload();
+                },
+                error: function (return_data) {
+                    alert(return_data);
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>
